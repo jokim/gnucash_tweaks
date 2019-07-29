@@ -25,6 +25,7 @@ TODO:
 import argparse
 from bs4 import BeautifulSoup
 import os
+import pdfkit
 
 
 def tweak_file(f, footer_text=None):
@@ -47,7 +48,12 @@ def tweak_file(f, footer_text=None):
     # gnucash per language
 
     # Fix CSS:
-    soup.html.style.string = '\ntable { width: 100% }' + soup.html.style.string
+    soup.html.style.string = '''
+        table { width: 100% }
+        .main-table { margin-top: 5em }
+        .main-table > table > tbody > tr > td { padding-top: 2em }
+        .client-table { margin-top: 5em }
+        ''' + soup.html.style.string
     return soup
 
 
@@ -56,7 +62,12 @@ def main():
 
     parser.add_argument(
             '--footer', default='Med venleg helsing Bryggekomitéen',
-            help="The footer text, instead of 'Thanks for the patrionage'"
+            help="The footer text, instead of 'Thanks for the patrionage'. "
+                 "Default: '%(default)s'"
+            )
+    parser.add_argument(
+            '--format', choices=('pdf', 'html'), default='pdf',
+            help="What format to export to. Default: %(default)s"
             )
     parser.add_argument(
             'files', nargs='+', type=argparse.FileType('r'),
@@ -69,12 +80,14 @@ def main():
     for f in args.files:
         soup = tweak_file(f)
         outname = '{}.clean.html'.format(f.name)
-        # TODO: Don't overwrite, for now!
-        out = open(outname, 'w')
-        out.write(soup.prettify())
-        out.close()
-        print("Wrote {} to {}".format(os.path.basename(f.name),
-                                      os.path.basename(outname)))
+        if args.format == 'html':
+            out = open(outname, 'w')
+            out.write(soup.prettify())
+            out.close()
+            print("Wrote {} to {}".format(os.path.basename(f.name),
+                                          os.path.basename(outname)))
+        elif args.format == 'pdf':
+            pdfkit.from_string(str(soup), f.name + '.pdf')
         i += 1
     print("{} files tweaked".format(i))
 
