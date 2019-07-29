@@ -116,13 +116,15 @@ def main():
         soup = tweak_file(f, footer_text=args.footer)
         if args.format == 'html':
             outname = '{}.clean.html'.format(f.name)
+            print("Write {} to {}".format(os.path.basename(f.name),
+                                          os.path.basename(outname)))
             out = open(outname, 'w')
             out.write(soup.prettify())
             out.close()
-            print("Wrote {} to {}".format(os.path.basename(f.name),
-                                          os.path.basename(outname)))
         elif args.format == 'pdf':
-            outname = f.name + '.pdf'
+            outname = os.path.splitext(f.name)[0] + '.pdf'
+            print("Write {} to {}".format(os.path.basename(f.name),
+                                          os.path.basename(outname)))
             pdfkit.from_string(str(soup), outname,
                                options={
                                    'quiet': '',
@@ -131,8 +133,6 @@ def main():
                                    # Title, Author etc can't be set in Qt
                                    }
                                )
-            print("Wrote {} to {}".format(os.path.basename(f.name),
-                                          os.path.basename(outname)))
         i += 1
     print("{} files tweaked".format(i))
 
