@@ -62,7 +62,7 @@ def tweak_file(f, footer_text=None):
     to_remove = []
     for i, th in enumerate(div.find_all('th')):
         if th.text in ('Handling', 'Antall', 'Stykkpris', 'Rabatt',
-                       'MVA-pliktig', 'Totalt'):
+                       'MVA-pliktig',):
             to_remove.append(i)
             th.extract()
 
