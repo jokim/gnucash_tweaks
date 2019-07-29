@@ -33,6 +33,7 @@ def soup_rm_tr(soup, td_text, attrs={}):
     if td:
         td.parent.extract()
 
+
 def tweak_file(f, footer_text=None):
     soup = BeautifulSoup(f, features="html.parser")
 
@@ -49,6 +50,23 @@ def tweak_file(f, footer_text=None):
     soup_rm_tr(soup, 'Net Price')
     # Change language on last total field
     soup.find('td', text='Å betale').string = 'Totalt'
+
+    # Remove unnecessary columns:
+    div = soup.find('div', attrs={'class': 'entries-table'})
+    to_remove = []
+    for i, th in enumerate(div.find_all('th')):
+        if th.text in ('Handling', 'Antall', 'Stykkpris', 'Rabatt',
+                       'MVA-pliktig', 'Totalt'):
+            to_remove.append(i)
+            th.extract()
+
+    tbody = div.find('tbody')
+    for tr in tbody.find_all('tr'):
+        tds = tr.find_all('td')
+        if tds[0].text == 'Totalt':
+            break
+        for i in to_remove:
+            tds[i].extract()
 
     # TODO: more text to translate? Then I hopefully don't have to starta
     # gnucash per language
@@ -84,7 +102,7 @@ def main():
 
     i = 0
     for f in args.files:
-        soup = tweak_file(f)
+        soup = tweak_file(f, footer_text=args.footer)
         outname = '{}.clean.html'.format(f.name)
         if args.format == 'html':
             out = open(outname, 'w')
