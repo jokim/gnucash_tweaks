@@ -45,7 +45,10 @@ def tweak_file(f, footer_text=None):
     # Change the default footer from "Thank's for the patrionage!"
     if footer_text:
         div = soup.find(attrs={'class': 'invoice-notes'})
-        div.string = footer_text
+        pre = soup.new_tag('pre')
+        pre.string = footer_text
+        div.clear()
+        div.append(pre)
 
     # Remove tax fields:
     # 1. The row with the MVA
@@ -54,7 +57,7 @@ def tweak_file(f, footer_text=None):
     soup_rm_tr(soup, 'Total Price')
     soup_rm_tr(soup, 'Net Price')
     # Change language on last total field
-    soup.find('td', text='Å betale').string = 'Totalt'
+    # soup.find('td', text='Å betale').string = 'Totalt'
 
     # Remove the Terms element
     div = soup.find('div', attrs={'class': 'invoice-details-table'})
@@ -74,7 +77,8 @@ def tweak_file(f, footer_text=None):
     tbody = div.find('tbody')
     for tr in tbody.find_all('tr'):
         tds = tr.find_all('td')
-        if tds[0].text == 'Totalt':
+        # TODO: Find something better to match
+        if tds[0].text == 'Å betale':
             break
         for i in to_remove:
             tds[i].extract()
@@ -84,6 +88,7 @@ def tweak_file(f, footer_text=None):
 
     # Fix CSS:
     soup.html.style.string = '''
+        body { margin-left: 18mm }
         table { width: 100% }
         .main-table { margin-top: 5em }
         .main-table > table > tbody > tr > td { padding-top: 2em }
@@ -96,7 +101,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument(
-            '--footer', default='Med venleg helsing Bryggekomitéen',
+            '--footer', default='Kontonummer: 1506.24.27369\n\n'
+            'Om du merker betalinga med båtplass eller eigar, gjer du '
+            'arbeidet vårt enklare.\n\n'
+            'Med venleg helsing Bryggekomitéen',
             help="The footer text, instead of 'Thanks for the patrionage'. "
                  "Default: '%(default)s'"
             )
