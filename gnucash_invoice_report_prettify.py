@@ -51,6 +51,12 @@ def tweak_file(f, footer_text=None):
     # Change language on last total field
     soup.find('td', text='Å betale').string = 'Totalt'
 
+    # Remove the Terms element
+    div = soup.find('div', attrs={'class': 'invoice-details-table'})
+    for tr in div.find_all('tr'):
+        if tr.find('td').text == 'Terms:':
+            tr.extract()
+
     # Remove unnecessary columns:
     div = soup.find('div', attrs={'class': 'entries-table'})
     to_remove = []
