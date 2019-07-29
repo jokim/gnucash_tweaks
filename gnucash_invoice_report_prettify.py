@@ -28,6 +28,11 @@ import os
 import pdfkit
 
 
+def soup_rm_tr(soup, td_text, attrs={}):
+    td = soup.find('td', text=td_text, attrs=attrs)
+    if td:
+        td.parent.extract()
+
 def tweak_file(f, footer_text=None):
     soup = BeautifulSoup(f, features="html.parser")
 
@@ -38,9 +43,10 @@ def tweak_file(f, footer_text=None):
 
     # Remove tax fields:
     # 1. The row with the MVA
-    soup.find('td', text='MVA').parent.extract()
+    soup_rm_tr(soup, 'MVA', attrs={'class': 'total-label-cell'})
     # Remove one of the total fields
-    soup.find('td', text='Total Price').parent.extract()
+    soup_rm_tr(soup, 'Total Price')
+    soup_rm_tr(soup, 'Net Price')
     # Change language on last total field
     soup.find('td', text='Å betale').string = 'Totalt'
 
