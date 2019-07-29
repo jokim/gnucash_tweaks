@@ -37,6 +37,11 @@ def soup_rm_tr(soup, td_text, attrs={}):
 def tweak_file(f, footer_text=None):
     soup = BeautifulSoup(f, features="html.parser")
 
+    # Insert missing <title>
+    title = soup.new_tag('title')
+    title.string = soup.find(attrs={'class': 'invoice-title'}).text
+    soup.head.append(title)
+
     # Change the default footer from "Thank's for the patrionage!"
     if footer_text:
         div = soup.find(attrs={'class': 'invoice-notes'})
@@ -109,15 +114,25 @@ def main():
     i = 0
     for f in args.files:
         soup = tweak_file(f, footer_text=args.footer)
-        outname = '{}.clean.html'.format(f.name)
         if args.format == 'html':
+            outname = '{}.clean.html'.format(f.name)
             out = open(outname, 'w')
             out.write(soup.prettify())
             out.close()
             print("Wrote {} to {}".format(os.path.basename(f.name),
                                           os.path.basename(outname)))
         elif args.format == 'pdf':
-            pdfkit.from_string(str(soup), f.name + '.pdf')
+            outname = f.name + '.pdf'
+            pdfkit.from_string(str(soup), outname,
+                               options={
+                                   'quiet': '',
+                                   'page-size': 'A4',
+                                   'encoding': 'UTF-8',
+                                   # Title, Author etc can't be set in Qt
+                                   }
+                               )
+            print("Wrote {} to {}".format(os.path.basename(f.name),
+                                          os.path.basename(outname)))
         i += 1
     print("{} files tweaked".format(i))
 
